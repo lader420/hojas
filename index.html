@@ -328,4 +328,376 @@
                       <label class="block text-sm font-medium text-slate-700 mb-1">Referencia / Ticket #</label>
                       <div class="relative">
                         ${tagIcon}
-                        <input type="text" name="ticketRef" value="${serviceData.ticketRef}" class
+                        <input type="text" name="ticketRef" value="${serviceData.ticketRef}" class="service-field w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" placeholder="Ej. RPT-2023-1001" />
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 mb-1">Cliente</label>
+                      <div class="relative">
+                        ${userIcon}
+                        <input type="text" name="cliente" value="${serviceData.cliente}" class="service-field w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" placeholder="Nombre del Cliente" />
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                      <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Equipo</label>
+                        <input type="text" name="equipo" value="${serviceData.equipo}" class="service-field w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" placeholder="Marca/Modelo" />
+                      </div>
+                      <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Fecha de Entrega</label>
+                        <input type="date" name="fechaEntrega" value="${serviceData.fechaEntrega}" class="service-field w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Diagnóstico y Trabajo -->
+                  <div class="space-y-4">
+                    <h3 class="text-sm font-extrabold text-emerald-500 uppercase tracking-wider mb-2">Trabajo Realizado</h3>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 mb-1">Diagnóstico Final</label>
+                      <textarea name="diagnostico" class="service-field w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" rows="3" placeholder="Detalle la causa del problema.">${serviceData.diagnostico}</textarea>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 mb-1">Acciones Corregidas / Trabajo Realizado</label>
+                      <textarea name="trabajoRealizado" class="service-field w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" rows="3" placeholder="Pasos que se siguieron para reparar el equipo.">${serviceData.trabajoRealizado}</textarea>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 mb-1">Repuestos Utilizados</label>
+                      <input type="text" name="repuestos" value="${serviceData.repuestos}" class="service-field w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" placeholder="Ej. SSD 500GB, Teclado, Fuente de Poder." />
+                    </div>
+                  </div>
+
+                  <!-- Costos y Garantía -->
+                  <div class="md:col-span-2 space-y-4 pt-4 border-t">
+                    <h3 class="text-sm font-extrabold text-emerald-500 uppercase tracking-wider mb-4">Costos y Garantía</h3>
+
+                    <!-- COSTOS BASE (Mano de Obra y Repuestos) -->
+                    <div class="grid grid-cols-2 gap-4">
+                      <!-- Costo Mano de Obra -->
+                      <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Costo Mano de Obra</label>
+                        <div class="relative">
+                          ${dollarIcon}
+                          <input type="number" step="0.01" name="costoManoObra" value="${serviceData.costoManoObra}" class="service-field w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" />
+                        </div>
+                      </div>
+                      <!-- Costo Repuestos -->
+                      <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Costo Repuestos</label>
+                        <div class="relative">
+                          ${dollarIcon}
+                          <input type="number" step="0.01" name="costoRepuestos" value="${serviceData.costoRepuestos}" class="service-field w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- ABONO / DEPÓSITO (Separado y más abajo) -->
+                    <div class="pt-4 border-t border-slate-200">
+                      <label class="block text-sm font-medium text-slate-700 mb-1">Abono / Depósito (Se descuenta del total)</label>
+                      <div class="relative max-w-sm">
+                        ${dollarIcon}
+                        <input type="number" step="0.01" name="abono" value="${serviceData.abono}" class="service-field w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none transition-shadow bg-red-50 text-red-700" />
+                      </div>
+                    </div>
+                      
+                    <!-- TOTAL FINAL (Lo más destacado) -->
+                    <div class="pt-6 border-t-2 border-emerald-500">
+                      <label class="block text-xl font-extrabold text-slate-800 mb-2">Total Final a Pagar</label>
+                      <div class="text-4xl font-black text-red-700 bg-red-100 p-4 rounded-xl max-w-sm text-center shadow-lg">
+                        $${totalFinal.toFixed(2)}
+                      </div>
+                    </div>
+
+                    <div class="pt-4">
+                      <label class="block text-sm font-medium text-slate-700 mb-1">Período de Garantía</label>
+                      <input type="text" name="garantia" value="${serviceData.garantia}" class="service-field w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" placeholder="Ej. 30 días en mano de obra." />
+                    </div>
+
+                    <div class="pt-4">
+                      <label class="block text-sm font-medium text-slate-700 mb-1">Observaciones / Notas Técnicas</label>
+                      <textarea name="notasTecnicas" class="service-field w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" rows="3" placeholder="Cualquier nota adicional para el archivo interno o el cliente.">${serviceData.notasTecnicas}</textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="p-6 bg-slate-50 border-t flex justify-between gap-4">
+                  <!-- Botón Reporte Final -->
+                  <button data-action="generate-service" class="flex items-center gap-2 bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-300/50">
+                    ${fileTextIcon} Generar Reporte Final
+                  </button>
+
+                  <!-- Botón Imprimir/Guardar -->
+                  <button data-action="print" class="flex items-center gap-2 bg-slate-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-slate-700 transition-colors shadow-lg shadow-slate-300/50">
+                    ${printerIcon} Imprimir / Descargar
+                  </button>
+                </div>
+              </div>
+            `;
+        }
+
+        function renderGeneratedDocument() {
+            const isReception = generatedDoc === 'reception-doc';
+            const data = isReception ? receptionData : serviceData;
+            const title = isReception ? 'Hoja de Recepción de Equipo' : 'Reporte Técnico Final';
+            const color = isReception ? 'text-blue-600' : 'text-emerald-600';
+            const bgColor = isReception ? 'bg-blue-50' : 'bg-emerald-50';
+            
+            const arrowLeftIcon = getIconSvg('ArrowLeft', 'w-5 h-5');
+            const printerIcon = getIconSvg('Printer', 'w-4 h-4');
+            const checkSquareIcon = getIconSvg('CheckSquare', 'w-4 h-4');
+            const squareIcon = getIconSvg('Square', 'w-4 h-4');
+            
+            // Cálculos para el documento de servicio
+            const costoManoObra = parseFloat(data.costoManoObra);
+            const costoRepuestos = parseFloat(data.costoRepuestos);
+            const totalCost = (costoManoObra + costoRepuestos).toFixed(2);
+            const abono = parseFloat(data.abono);
+            const totalFinal = (costoManoObra + costoRepuestos - abono).toFixed(2);
+
+
+            const headerHtml = isReception ? `
+              <h3 class="text-lg font-semibold text-slate-700 mt-4 border-b pb-1">Datos del Equipo</h3>
+              <div class="grid grid-cols-2 mt-2 text-sm">
+                <div><strong class="text-slate-600">Tipo:</strong> ${data.equipo}</div>
+                <div><strong class="text-slate-600">Marca/Modelo:</strong> ${data.marcaModelo}</div>
+                <div class="col-span-2"><strong class="text-slate-600">Nº de Serie:</strong> ${data.serie || 'N/A'}</div>
+              </div>
+            ` : `
+              <h3 class="text-lg font-semibold text-slate-700 mt-4 border-b pb-1">Detalles del Servicio</h3>
+              <div class="grid grid-cols-2 mt-2 text-sm">
+                <div><strong class="text-slate-600">Ticket Ref:</strong> ${data.ticketRef || 'N/A'}</div>
+                <div><strong class="text-slate-600">Equipo:</strong> ${data.equipo}</div>
+                <div><strong class="text-slate-600">Garantía:</strong> ${data.garantia}</div>
+                <div><strong class="text-slate-600">Fecha Entrega:</strong> ${data.fechaEntrega}</div>
+              </div>
+            `;
+
+            let mainContentHtml = '';
+
+            if (isReception) {
+              const accessoriesList = Object.keys(data.accesorios).map(key => `
+                <span class="flex items-center gap-1 ${data.accesorios[key] ? 'text-green-700 font-medium' : 'text-red-500'}">
+                  ${data.accesorios[key] ? checkSquareIcon : squareIcon}
+                  ${formatAccessoryName(key)}
+                </span>
+              `).join('');
+
+              mainContentHtml = `
+                <h3 class="text-lg font-semibold text-slate-700 mt-4 border-b pb-1">Falla Reportada</h3>
+                <p class="mt-2 text-sm italic">${data.fallaReportada || 'No especificada.'}</p>
+                
+                <h3 class="text-lg font-semibold text-slate-700 mt-4 border-b pb-1">Estado Físico / Observaciones</h3>
+                <p class="mt-2 text-sm italic">${data.estadoFisico || 'N/A'}</p>
+
+                <h3 class="text-lg font-semibold text-slate-700 mt-4 border-b pb-1">Accesorios Entregados</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 text-sm">
+                  ${accessoriesList}
+                </div>
+              `;
+            } else {
+              mainContentHtml = `
+                <h3 class="text-lg font-semibold text-slate-700 mt-4 border-b pb-1">Diagnóstico y Trabajo</h3>
+                <div class="mt-2">
+                  <strong class="text-slate-600 text-sm">Diagnóstico Final:</strong>
+                  <p class="text-sm border-l-2 border-emerald-300 pl-2 italic">${data.diagnostico || 'Pendiente.'}</p>
+                </div>
+                <div class="mt-4">
+                  <strong class="text-slate-600 text-sm">Trabajo Realizado:</strong>
+                  <p class="text-sm border-l-2 border-emerald-300 pl-2">${data.trabajoRealizado || 'Pendiente.'}</p>
+                </div>
+
+                <h3 class="text-lg font-semibold text-slate-700 mt-4 border-b pb-1">Repuestos y Costos</h3>
+                <div class="mt-2 text-sm font-medium">
+                  <div class="mb-2"><strong class="text-slate-600">Repuestos Utilizados:</strong> ${data.repuestos || 'Ninguno'}</div>
+                  
+                  <div class="grid grid-cols-2 gap-4 border-t border-b py-2">
+                    <div><strong class="text-slate-600">Mano de Obra:</strong> $${costoManoObra.toFixed(2)}</div>
+                    <div><strong class="text-slate-600">Costo Repuestos:</strong> $${costoRepuestos.toFixed(2)}</div>
+                  </div>
+
+                  <!-- Detalle de Abono y Total Final -->
+                  <div class="mt-3">
+                    <div class="text-base text-red-600 font-semibold flex justify-between items-center bg-red-50 p-2 rounded-lg">
+                      <span class="text-slate-600 font-medium">(-) Abono / Depósito:</span>
+                      <span class="font-bold">-$${abono.toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  <div class="mt-4 text-2xl font-black flex justify-between items-center p-3 border-t-2 border-emerald-500">
+                    <strong class="text-slate-800">TOTAL FINAL A PAGAR:</strong>
+                    <span class="text-red-700">$${totalFinal}</span>
+                  </div>
+                </div>
+
+                <h3 class="text-lg font-semibold text-slate-700 mt-4 border-b pb-1">Notas Técnicas</h3>
+                <p class="mt-2 text-sm italic">${data.notasTecnicas || 'No hay notas técnicas.'}</p>
+              `;
+            }
+
+            return `
+              <div class="max-w-4xl mx-auto p-4 md:p-8">
+                <div class="flex justify-between items-center mb-6 print:hidden">
+                  <button data-action="back-to-form" class="flex items-center gap-1 text-slate-600 hover:text-slate-800 transition-colors">
+                    ${arrowLeftIcon} Volver al Formulario
+                  </button>
+                  <button data-action="print" class="flex items-center gap-2 bg-slate-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-slate-700 transition-colors shadow-lg">
+                    ${printerIcon} Imprimir / Descargar
+                  </button>
+                </div>
+
+                <div class="p-8 border-4 border-dashed border-slate-300 rounded-xl shadow-xl bg-white document-body">
+                  <div class="p-4 rounded-lg text-center ${bgColor} border-b-4 ${isReception ? 'border-blue-600' : 'border-emerald-600'} mb-6">
+                    <h1 class="text-3xl font-extrabold ${color}">${title}</h1>
+                    <p class="text-sm text-slate-500">Documento Generado: ${new Date().toLocaleDateString('es-ES')}</p>
+                  </div>
+                  
+                  <h3 class="text-lg font-semibold text-slate-700 border-b pb-1">Datos del Cliente</h3>
+                  <div class="grid grid-cols-2 mt-2 text-sm">
+                    <div><strong class="text-slate-600">Nombre:</strong> ${data.cliente}</div>
+                    <div><strong class="text-slate-600">Fecha:</strong> ${isReception ? data.fecha : data.fechaEntrega}</div>
+                    <div class="col-span-2"><strong class="text-slate-600">Teléfono:</strong> ${isReception ? data.telefono : 'N/A'}</div>
+                  </div>
+                  
+                  ${headerHtml}
+                  ${mainContentHtml}
+
+                  <div class="mt-12 pt-6 border-t border-slate-300 grid grid-cols-2 gap-8 text-center text-sm">
+                    <div class="border-t border-slate-500 pt-1">Firma del Técnico</div>
+                    <div class="border-t border-slate-500 pt-1">Firma del Cliente (Aceptación)</div>
+                  </div>
+
+                  <p class="text-xs text-slate-400 text-center mt-6">
+                    Este documento certifica la información proporcionada al momento de la ${isReception ? 'recepción' : 'entrega'} del equipo.
+                  </p>
+                </div>
+              </div>
+            `;
+        }
+
+        // =========================================================
+        // 4. LÓGICA DE APLICACIÓN Y EVENTOS
+        // =========================================================
+
+        function attachEventListeners() {
+            const appRoot = document.getElementById('app');
+
+            // 1. Manejo de Navegación (Botones de inicio y Volver)
+            appRoot.querySelectorAll('[data-action="navigate"]').forEach(btn => {
+                btn.onclick = (e) => {
+                    currentView = e.currentTarget.dataset.target;
+                    generatedDoc = null;
+                    renderApp();
+                };
+            });
+
+            // 2. Generación de Documentos
+            const generateReceptionBtn = appRoot.querySelector('[data-action="generate-reception"]');
+            if (generateReceptionBtn) {
+                generateReceptionBtn.onclick = () => {
+                    generatedDoc = 'reception-doc';
+                    renderApp();
+                };
+            }
+            const generateServiceBtn = appRoot.querySelector('[data-action="generate-service"]');
+            if (generateServiceBtn) {
+                generateServiceBtn.onclick = () => {
+                    generatedDoc = 'service-doc';
+                    renderApp();
+                };
+            }
+            
+            // 3. Documento Volver al Formulario
+            const backToFormBtn = appRoot.querySelector('[data-action="back-to-form"]');
+            if (backToFormBtn) {
+                backToFormBtn.onclick = () => {
+                    generatedDoc = null;
+                    renderApp();
+                };
+            }
+
+            // 4. Botón Imprimir
+            appRoot.querySelectorAll('[data-action="print"]').forEach(btn => {
+                btn.onclick = handlePrint;
+            });
+
+            // 5. Manejo de Cambios en Formularios (Input/Select/Textarea)
+            
+            // Revisa si estamos en el formulario de Recepción
+            appRoot.querySelectorAll('.reception-field').forEach(input => {
+                input.onchange = (e) => {
+                    const { name, value, type, checked } = e.target;
+                    // Solo los accesorios son de tipo checkbox
+                    if (type === 'checkbox') {
+                        // El checkbox de accesorios se maneja en el punto 6, pero este es el fallback
+                        receptionData.accesorios[name] = checked;
+                    } else {
+                        receptionData[name] = value;
+                    }
+                    // No es necesario re-renderizar para cada cambio de texto, pero lo hacemos para los checkboxes
+                    if (type === 'checkbox') renderApp(); 
+                };
+                input.oninput = (e) => {
+                    // Actualiza el estado en cada input para las áreas de texto (observaciones/falla)
+                    if (e.target.tagName === 'TEXTAREA' || e.target.type === 'text') {
+                        receptionData[e.target.name] = e.target.value;
+                    }
+                }
+            });
+
+            // Revisa si estamos en el formulario de Servicio
+            appRoot.querySelectorAll('.service-field').forEach(input => {
+                input.onchange = (e) => {
+                    const { name, value } = e.target;
+                    const isCostField = ['costoManoObra', 'costoRepuestos', 'abono'].includes(name);
+                    // Asegura que los campos de costo se guarden como números
+                    serviceData[name] = isCostField ? parseFloat(value) || 0 : value;
+                    if (isCostField) renderApp(); // Re-renderiza para actualizar el total al cambiar un costo
+                };
+                input.oninput = (e) => {
+                    // Actualiza el estado en cada input para las áreas de texto
+                    if (e.target.tagName === 'TEXTAREA' || e.target.type === 'text') {
+                        serviceData[e.target.name] = e.target.value;
+                    }
+                }
+            });
+
+            // 6. Handler Específico para Checkboxes de Accesorios
+            appRoot.querySelectorAll('.accessory-label input[type="checkbox"]').forEach(checkbox => {
+                checkbox.onchange = (e) => {
+                    receptionData.accesorios[e.target.name] = e.target.checked;
+                    renderApp(); // Rerenderiza para mostrar el cambio de ícono
+                };
+            });
+        }
+
+        // Función principal de renderizado
+        function renderApp() {
+            const appRoot = document.getElementById('app');
+            if (!appRoot) return;
+
+            let htmlContent = '';
+
+            // Determina qué vista renderizar
+            if (currentView === 'home') {
+                htmlContent = renderHome();
+            } else if (generatedDoc) {
+                htmlContent = renderGeneratedDocument();
+            } else if (currentView === 'reception') {
+                htmlContent = renderReceptionForm();
+            } else if (currentView === 'service') {
+                htmlContent = renderServiceForm();
+            }
+
+            // Inyecta el HTML en el DOM
+            appRoot.innerHTML = htmlContent;
+            
+            // Adjunta los listeners de eventos para los elementos recién creados
+            attachEventListeners();
+        }
+
+        // Inicia la aplicación al cargar la ventana
+        window.onload = renderApp;
+
+    </script>
+</body>
+</html>
