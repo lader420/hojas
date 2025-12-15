@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechService Pro - Gestión de Mantenimiento</title>
+    <!-- Carga Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define la fuente Inter */
+        html { font-family: 'Inter', sans-serif; }
+        
+        /* Ocultar elementos en la impresión */
+        @media print {
+            .document-body {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+            }
+            .print\:hidden {
+                display: none !important;
+            }
+            /* Asegura que el contenido se ajuste al tamaño de la página */
+            body { margin: 0; }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-100 p-4 md:p-8">
+    <div id="app" class="max-w-full">
+        <!-- El contenido de la aplicación se renderizará aquí -->
+    </div>
+
+    <script>
+        // =========================================================
+        // 1. ESTADO GLOBAL
+        // =========================================================
+        
+        // Variables de estado global que replican useState de React
+        let currentView = 'home';
+        let generatedDoc = null; // null, 'reception-doc', or 'service-doc'
+
+        let receptionData = {
+            cliente: '',
+            telefono: '',
+            fecha: new Date().toISOString().split('T')[0],
+            equipo: 'Laptop',
+            marcaModelo: '',
+            serie: '',
+            accesorios: {
+                cargador: false,
+                funda: false,
+                mouse: false,
+                cable: false,
+                mochila: false,
+                manuales: false,
+            },
+            estadoFisico: '',
+            fallaReportada: '',
+            observaciones: ''
+        };
+
+        let serviceData = {
+            ticketRef: '',
+            cliente: '',
+            fechaEntrega: new Date().toISOString().split('T')[0],
+            equipo: '',
+            diagnostico: '',
+            trabajoRealizado: '',
+            repuestos: '',
+            costoManoObra: 120.00,
+            costoRepuestos: 85.50,
+            garantia: '30 días',
+            notasTecnicas: ''
+        };
+
+        // =========================================================
+        // 2. FUNCIONES DE UTILIDAD
+        // =========================================================
+        
+        // Formatea el nombre de los accesorios para mostrarlos en la UI
+        function formatAccessoryName(key) {
+            return key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1').trim();
+        }
+
+        // Simula la impresión del documento
+        function handlePrint() {
+            window.print();
+        }
+
+        // Función para obtener el SVG de un ícono (replicando Lucide React)
+        function getIconSvg(name, classes) {
+            let path = '';
+            // Definiciones de íconos simplificadas (Lucide-like paths)
+            switch (name) {
+                case 'Cpu': path = '<circle cx="12" cy="12" r="2"/><path d="M6 8a6 6 0 1 0 12 0H6zM6 16a6 6 0 1 0 12 0H6zM10 2v4M14 2v4M2 10h4M2 14h4M10 18v4M14 18v4M18 10h4M18 14h4"/>'; break;
+                case 'ClipboardList': path = '<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M15 2H9a1 1 0 0 0-1 1v1h8V3a1 1 0 0 0-1-1z"/><path d="M11 10h6"/><path d="M11 14h6"/><path d="M11 18h6"/><path d="M7 10h.01"/><path d="M7 14h.01"/><path d="M7 18h.01"/>'; break;
+                case 'Wrench': path = '<path d="M15.2 3a2.7 2.7 0 0 0-3.9 0L1 14.3V19h4.7L15.2 7a2.7 2.7 0 0 0 0-3.9z"/><path d="M18 5l-2.4 2.4"/><path d="M16 17H4"/><path d="M16 21H8"/>'; break;
+                case 'ArrowLeft': path = '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>'; break;
+                case 'User': path = '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'; break;
+                case 'Smartphone': path = '<rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/>'; break;
+                case 'Calendar': path = '<rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>'; break;
+                case 'Tag': path = '<path d="M12.586 4.586A2 2 0 0 0 11.172 4H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l9.28 9.28a2 2 0 0 0 2.828 0l7.172-7.172a2 2 0 0 0 0-2.828L12.586 4.586Z"/><circle cx="7.5" cy="7.5" r="0.5"/>'; break;
+                case 'DollarSign': path = '<line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'; break;
+                case 'FileText': path = '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>'; break;
+                case 'CheckSquare': path = '<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>'; break;
+                case 'Square': path = '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>'; break;
+                case 'Printer': path = '<polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14" rx="1"/>'; break;
+                default: path = '';
+            }
+            return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${classes}">${path}</svg>`;
+        }
+
+
+        // =========================================================
+        // 3. FUNCIONES DE RENDERIZADO (VISTAS)
+        // =========================================================
+
+        function renderHome() {
+            const cpuIcon = getIconSvg('Cpu', 'w-10 h-10 text-white');
+            const clipboardIconLg = getIconSvg('ClipboardList', 'w-24 h-24 text-blue-600');
+            const clipboardIconSm = getIconSvg('ClipboardList', 'w-6 h-6');
+            const wrenchIconLg = getIconSvg('Wrench', 'w-24 h-24 text-emerald-600');
+            const wrenchIconSm = getIconSvg('Wrench', 'w-6 h-6');
+
+            return `
+              <div class="flex flex-col items-center justify-center min-h-[80vh] gap-8 animate-fade-in">
+                <div class="text-center mb-8">
+                  <div class="inline-flex items-center justify-center w-20 h-20 bg-blue-700 rounded-full mb-4 shadow-lg shadow-blue-300/50">
+                    ${cpuIcon}
+                  </div>
+                  <h1 class="text-4xl font-extrabold text-slate-800 tracking-tight">TechService Pro</h1>
+                  <p class="text-slate-500 mt-2 text-lg">Sistema de Gestión de Mantenimiento</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl px-4">
+                  <!-- Card Recepción -->
+                  <button 
+                    data-action="navigate" 
+                    data-target="reception"
+                    class="group relative overflow-hidden bg-white p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-slate-100 text-left hover:border-blue-300"
+                  >
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity duration-300">
+                      ${clipboardIconLg}
+                    </div>
+                    <div class="relative z-10">
+                      <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                        ${clipboardIconSm}
+                      </div>
+                      <h2 class="text-2xl font-bold text-slate-800 mb-2">Hoja de Recepción</h2>
+                      <p class="text-slate-500">Genera una hoja de entrada para el cliente y registra el estado inicial.</p>
+                    </div>
+                  </button>
+
+                  <!-- Card Servicio -->
+                  <button 
+                    data-action="navigate" 
+                    data-target="service"
+                    class="group relative overflow-hidden bg-white p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-slate-100 text-left hover:border-emerald-300"
+                  >
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity duration-300">
+                      ${wrenchIconLg}
+                    </div>
+                    <div class="relative z-10">
+                      <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mb-4 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                        ${wrenchIconSm}
+                      </div>
+                      <h2 class="text-2xl font-bold text-slate-800 mb-2">Reporte Técnico</h2>
+                      <p class="text-slate-500">Crea el informe final, incluyendo diagnóstico, trabajo y costos.</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            `;
+        }
+
+        function renderReceptionForm() {
+            const clipboardIcon = getIconSvg('ClipboardList', 'w-6 h-6');
+            const arrowLeftIcon = getIconSvg('ArrowLeft', 'w-4 h-4');
+            const userIcon = getIconSvg('User', 'w-4 h-4 absolute left-3 top-3 text-slate-400');
+            const phoneIcon = getIconSvg('Smartphone', 'w-4 h-4 absolute left-3 top-3 text-slate-400');
+            const calendarIcon = getIconSvg('Calendar', 'w-4 h-4 absolute left-3 top-3 text-slate-400');
+            const fileTextIcon = getIconSvg('FileText', 'w-4 h-4');
+
+            const accessoriesHtml = Object.keys(receptionData.accesorios).map(acc => {
+                const isChecked = receptionData.accesorios[acc];
+                const icon = isChecked ? getIconSvg('CheckSquare', 'w-5 h-5 text-blue-600 fill-blue-100') : getIconSvg('Square', 'w-5 h-5 text-slate-400');
+                
+                return `
+                    <label class="accessory-label flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border cursor-pointer hover:bg-blue-50 transition-colors shadow-sm">
+                        <input 
+                          type="checkbox" 
+                          name="${acc}" 
+                          ${isChecked ? 'checked' : ''}
+                          class="hidden" 
+                        />
+                        ${icon}
+                        <span class="capitalize text-slate-700 text-sm">${formatAccessoryName(acc)}</span>
+                    </label>
+                `;
+            }).join('');
+
+            return `
+              <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200">
+                <div class="bg-blue-600 p-6 text-white flex justify-between items-center">
+                  <h2 class="text-xl font-bold flex items-center gap-2">
+                    ${clipboardIcon} Nueva Recepción de Equipo
+                  </h2>
+                  <button data-action="navigate" data-target="home" class="text-white/80 hover:text-white flex items-center gap-1 text-sm transition-colors">
+                    ${arrowLeftIcon} Volver
+                  </button>
+                </div>
+                
+                <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <!-- Datos Cliente -->
+                  <div class="space-y-4 border-b md:border-b-0 md:border-r pb-4 md:pb-0 pr-4">
+                    <h3 class="text-sm font-extrabold text-blue-500 uppercase tracking-wider mb-2">Datos del Cliente</h3>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 mb-1">Nombre Completo</label>
+                      <div class="relative">
+                        ${userIcon}
+                        <input type="text" name="cliente" value="${receptionData.cliente}" class="reception-field w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" placeholder="Ej. Juan Pérez" />
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 mb-1">Teléfono / Contacto</label>
+                      <div class="relative">
+                        ${phoneIcon}
+                        <input type="text" name="telefono" value="${receptionData.telefono}" class="reception-field w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" placeholder="Ej. 55-1234-5678" />
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 mb-1">Fecha de Ingreso</label>
+                      <div class="relative">
+                        ${calendarIcon}
+                        <input type="date" name="fecha" value="${receptionData.fecha}" class="reception-field w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Datos Equipo -->
+                  <div class="space-y-4">
+                    <h3 class="text-sm font-extrabold text-blue-500 uppercase tracking-wider mb-2">Datos del Equipo</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                      <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
+                        <select name="equipo" class="reception-field w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-shadow">
+                          <option ${receptionData.equipo === 'Laptop' ? 'selected' : ''}>Laptop</option>
+                          <option ${receptionData.equipo === 'PC Escritorio' ? 'selected' : ''}>PC Escritorio</option>
+                          <option ${receptionData.equipo === 'All-in-One' ? 'selected' : ''}>All-in-One</option>
+                          <option ${receptionData.equipo === 'Celular/Tablet' ? 'selected' : ''}>Celular/Tablet</option>
+                          <option ${receptionData.equipo === 'Impresora' ? 'selected' : ''}>Impresora</option>
+                          <option ${receptionData.equipo === 'Otro' ? 'selected' : ''}>Otro</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Marca/Modelo</label>
+                        <input type="text" name="marcaModelo" value="${receptionData.marcaModelo}" class="reception-field w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" placeholder="Ej. HP Pavilion" />
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 mb-1">Número de Serie / ID</label>
+                      <input type="text" name="serie" value="${receptionData.serie}" class="reception-field w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" placeholder="Opcional" />
+                    </div>
+                  </div>
+
+                  <!-- Estado y Accesorios -->
+                  <div class="md:col-span-2 space-y-4 pt-4 border-t">
+                    <h3 class="text-sm font-extrabold text-blue-500 uppercase tracking-wider mb-2">Accesorios Entregados</h3>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                      ${accessoriesHtml}
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Falla Reportada</label>
+                        <textarea name="fallaReportada" class="reception-field w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" placeholder="¿Qué problema presenta el equipo?">${receptionData.fallaReportada}</textarea>
+                      </div>
+                      <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Estado Físico / Observaciones</label>
+                        <textarea name="estadoFisico" class="reception-field w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-shadow" placeholder="Rayones, pantalla rota, falta tecla...">${receptionData.estadoFisico}</textarea>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="p-6 bg-slate-50 border-t flex justify-center">
+                  <!-- Botón: Generar Hoja de Recepción -->
+                  <button data-action="generate-reception" class="flex items-center gap-2 bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-300/50">
+                    ${fileTextIcon} Generar Hoja de Recepción
+                  </button>
+                </div>
+              </div>
+            `;
+        }
+
+        function renderServiceForm() {
+            const wrenchIcon = getIconSvg('Wrench', 'w-6 h-6');
+            const arrowLeftIcon = getIconSvg('ArrowLeft', 'w-4 h-4');
+            const tagIcon = getIconSvg('Tag', 'w-4 h-4 absolute left-3 top-3 text-slate-400');
+            const userIcon = getIconSvg('User', 'w-4 h-4 absolute left-3 top-3 text-slate-400');
+            const dollarIcon = getIconSvg('DollarSign', 'w-4 h-4 absolute left-3 top-3 text-slate-400');
+            const fileTextIcon = getIconSvg('FileText', 'w-4 h-4');
+            const printerIcon = getIconSvg('Printer', 'w-4 h-4');
+            
+            const totalCost = (serviceData.costoManoObra + serviceData.costoRepuestos).toFixed(2);
+
+            return `
+              <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200">
+                <div class="bg-emerald-600 p-6 text-white flex justify-between items-center">
+                  <h2 class="text-xl font-bold flex items-center gap-2">
+                    ${wrenchIcon} Reporte Técnico Final
+                  </h2>
+                  <button data-action="navigate" data-target="home" class="text-white/80 hover:text-white flex items-center gap-1 text-sm transition-colors">
+                    ${arrowLeftIcon} Volver
+                  </button>
+                </div>
+                
+                <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  
+                  <!-- Información del Ticket -->
+                  <div class="space-y-4 border-b md:border-b-0 md:border-r pb-4 md:pb-0 pr-4">
+                    <h3 class="text-sm font-extrabold text-emerald-500 uppercase tracking-wider mb-2">Detalles del Servicio</h3>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 mb-1">Referencia / Ticket #</label>
+                      <div class="relative">
+                        ${tagIcon}
+                        <input type="text" name="ticketRef" value="${serviceData.ticketRef}" class="service-field w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" placeholder="Ej. RPT-2023-1001" />
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 mb-1">Cliente</label>
+                      <div class="relative">
+                        ${userIcon}
+                        <input type="text" name="cliente" value="${serviceData.cliente}" class="service-field w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" placeholder="Nombre del Cliente" />
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                      <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Equipo</label>
+                        <input type="text" name="equipo" value="${serviceData.equipo}" class="service-field w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" placeholder="Marca/Modelo" />
+                      </div>
+                      <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Fecha de Entrega</label>
+                        <input type="date" name="fechaEntrega" value="${serviceData.fechaEntrega}" class="service-field w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Diagnóstico y Trabajo -->
+                  <div class="space-y-4">
+                    <h3 class="text-sm font-extrabold text-emerald-500 uppercase tracking-wider mb-2">Trabajo Realizado</h3>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 mb-1">Diagnóstico Final</label>
+                      <textarea name="diagnostico" class="service-field w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" rows="3" placeholder="Detalle la causa del problema.">${serviceData.diagnostico}</textarea>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 mb-1">Acciones Corregidas / Trabajo Realizado</label>
+                      <textarea name="trabajoRealizado" class="service-field w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" rows="3" placeholder="Pasos que se siguieron para reparar el equipo.">${serviceData.trabajoRealizado}</textarea>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 mb-1">Repuestos Utilizados</label>
+                      <input type="text" name="repuestos" value="${serviceData.repuestos}" class="service-field w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" placeholder="Ej. SSD 500GB, Teclado, Fuente de Poder." />
+                    </div>
+                  </div>
+
+                  <!-- Costos y Garantía -->
+                  <div class="md:col-span-2 space-y-4 pt-4 border-t">
+                    <h3 class="text-sm font-extrabold text-emerald-500 uppercase tracking-wider mb-2">Costos y Garantía</h3>
+
+                    <div class="grid grid-cols-3 gap-6">
+                      <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Costo Mano de Obra</label>
+                        <div class="relative">
+                          ${dollarIcon}
+                          <input type="number" step="0.01" name="costoManoObra" value="${serviceData.costoManoObra}" class="service-field w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" />
+                        </div>
+                      </div>
+                      <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Costo Repuestos</label>
+                        <div class="relative">
+                          ${dollarIcon}
+                          <input type="number" step="0.01" name="costoRepuestos" value="${serviceData.costoRepuestos}" class="service-field w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" />
+                        </div>
+                      </div>
+                      <div class="flex flex-col justify-end">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Total</label>
+                        <div class="text-xl font-bold text-emerald-700 bg-emerald-50 p-2 rounded-lg text-center">
+                          $${totalCost}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="pt-4">
+                      <label class="block text-sm font-medium text-slate-700 mb-1">Período de Garantía</label>
+                      <input type="text" name="garantia" value="${serviceData.garantia}" class="service-field w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" placeholder="Ej. 30 días en mano de obra." />
+                    </div>
+
+                    <div class="pt-4">
+                      <label class="block text-sm font-medium text-slate-700 mb-1">Observaciones / Notas Técnicas</label>
+                      <textarea name="notasTecnicas" class="service-field w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-shadow" rows="3" placeholder="Cualquier nota adicional para el archivo interno o el cliente.">${serviceData.notasTecnicas}</textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="p-6 bg-slate-50 border-t flex justify-between gap-4">
+                  <!-- Botón Reporte Final -->
+                  <button data-action="generate-service" class="flex items-center gap-2 bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-300/50">
+                    ${fileTextIcon} Generar Reporte Final
+                  </button>
+
+                  <!-- Botón Imprimir/Guardar -->
+                  <button data-action="print" class="flex items-center gap-2 bg-slate-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-slate-700 transition-colors shadow-lg shadow-slate-300/50">
+                    ${printerIcon} Imprimir / Descargar
+                  </button>
+                </div>
+              </div>
+            `;
+        }
+
+        function renderGeneratedDocument() {
+            const isReception = generatedDoc === 'reception-doc';
+            const data = isReception ? receptionData : serviceData;
+            const title = isReception ? 'Hoja de Recepción de Equipo' : 'Reporte Técnico Final';
+            const color = isReception ? 'text-blue-600' : 'text-emerald-600';
+            const bgColor = isReception ? 'bg-blue-50' : 'bg-emerald-50';
+            
+            const arrowLeftIcon = getIconSvg('ArrowLeft', 'w-5 h-5');
+            const printerIcon = getIconSvg('Printer', 'w-4 h-4');
+            const checkSquareIcon = getIconSvg('CheckSquare', 'w-4 h-4');
+            const squareIcon = getIconSvg('Square', 'w-4 h-4');
+
+            const headerHtml = isReception ? `
+              <h3 class="text-lg font-semibold text-slate-700 mt-4 border-b pb-1">Datos del Equipo</h3>
+              <div class="grid grid-cols-2 mt-2 text-sm">
+                <div><strong class="text-slate-600">Tipo:</strong> ${data.equipo}</div>
+                <div><strong class="text-slate-600">Marca/Modelo:</strong> ${data.marcaModelo}</div>
+                <div class="col-span-2"><strong class="text-slate-600">Nº de Serie:</strong> ${data.serie || 'N/A'}</div>
+              </div>
+            ` : `
+              <h3 class="text-lg font-semibold text-slate-700 mt-4 border-b pb-1">Detalles del Servicio</h3>
+              <div class="grid grid-cols-2 mt-2 text-sm">
+                <div><strong class="text-slate-600">Ticket Ref:</strong> ${data.ticketRef || 'N/A'}</div>
+                <div><strong class="text-slate-600">Equipo:</strong> ${data.equipo}</div>
+                <div><strong class="text-slate-600">Garantía:</strong> ${data.garantia}</div>
+                <div><strong class="text-slate-600">Fecha Entrega:</strong> ${data.fechaEntrega}</div>
+              </div>
+            `;
+
+            let mainContentHtml = '';
+
+            if (isReception) {
+              const accessoriesList = Object.keys(data.accesorios).map(key => `
+                <span class="flex items-center gap-1 ${data.accesorios[key] ? 'text-green-700 font-medium' : 'text-red-500'}">
+                  ${data.accesorios[key] ? checkSquareIcon : squareIcon}
+                  ${formatAccessoryName(key)}
+                </span>
+              `).join('');
+
+              mainContentHtml = `
+                <h3 class="text-lg font-semibold text-slate-700 mt-4 border-b pb-1">Falla Reportada</h3>
+                <p class="mt-2 text-sm italic">${data.fallaReportada || 'No especificada.'}</p>
+                
+                <h3 class="text-lg font-semibold text-slate-700 mt-4 border-b pb-1">Estado Físico / Observaciones</h3>
+                <p class="mt-2 text-sm italic">${data.estadoFisico || 'N/A'}</p>
+
+                <h3 class="text-lg font-semibold text-slate-700 mt-4 border-b pb-1">Accesorios Entregados</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 text-sm">
+                  ${accessoriesList}
+                </div>
+              `;
+            } else {
+                const total = (parseFloat(data.costoManoObra) + parseFloat(data.costoRepuestos)).toFixed(2);
+              mainContentHtml = `
+                <h3 class="text-lg font-semibold text-slate-700 mt-4 border-b pb-1">Diagnóstico y Trabajo</h3>
+                <div class="mt-2">
+                  <strong class="text-slate-600 text-sm">Diagnóstico Final:</strong>
+                  <p class="text-sm border-l-2 border-emerald-300 pl-2 italic">${data.diagnostico || 'Pendiente.'}</p>
+                </div>
+                <div class="mt-4">
+                  <strong class="text-slate-600 text-sm">Trabajo Realizado:</strong>
+                  <p class="text-sm border-l-2 border-emerald-300 pl-2">${data.trabajoRealizado || 'Pendiente.'}</p>
+                </div>
+
+                <h3 class="text-lg font-semibold text-slate-700 mt-4 border-b pb-1">Repuestos y Costos</h3>
+                <div class="grid grid-cols-3 mt-2 text-sm font-medium">
+                  <div class="col-span-3"><strong class="text-slate-600">Repuestos Utilizados:</strong> ${data.repuestos || 'Ninguno'}</div>
+                  <div><strong class="text-slate-600">Mano de Obra:</strong> $${parseFloat(data.costoManoObra).toFixed(2)}</div>
+                  <div><strong class="text-slate-600">Costo Repuestos:</strong> $${parseFloat(data.costoRepuestos).toFixed(2)}</div>
+                  <div class="text-lg font-bold text-red-600"><strong class="text-slate-600">TOTAL:</strong> $${total}</div>
+                </div>
+
+                <h3 class="text-lg font-semibold text-slate-700 mt-4 border-b pb-1">Notas Técnicas</h3>
+                <p class="mt-2 text-sm italic">${data.notasTecnicas || 'No hay notas técnicas.'}</p>
+              `;
+            }
+
+            return `
+              <div class="max-w-4xl mx-auto p-4 md:p-8">
+                <div class="flex justify-between items-center mb-6 print:hidden">
+                  <button data-action="back-to-form" class="flex items-center gap-1 text-slate-600 hover:text-slate-800 transition-colors">
+                    ${arrowLeftIcon} Volver al Formulario
+                  </button>
+                  <button data-action="print" class="flex items-center gap-2 bg-slate-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-slate-700 transition-colors shadow-lg">
+                    ${printerIcon} Imprimir / Descargar
+                  </button>
+                </div>
+
+                <div class="p-8 border-4 border-dashed border-slate-300 rounded-xl shadow-xl bg-white document-body">
+                  <div class="p-4 rounded-lg text-center ${bgColor} border-b-4 ${isReception ? 'border-blue-600' : 'border-emerald-600'} mb-6">
+                    <h1 class="text-3xl font-extrabold ${color}">${title}</h1>
+                    <p class="text-sm text-slate-500">Documento Generado: ${new Date().toLocaleDateString('es-ES')}</p>
+                  </div>
+                  
+                  <h3 class="text-lg font-semibold text-slate-700 border-b pb-1">Datos del Cliente</h3>
+                  <div class="grid grid-cols-2 mt-2 text-sm">
+                    <div><strong class="text-slate-600">Nombre:</strong> ${data.cliente}</div>
+                    <div><strong class="text-slate-600">Fecha:</strong> ${isReception ? data.fecha : data.fechaEntrega}</div>
+                    <div class="col-span-2"><strong class="text-slate-600">Teléfono:</strong> ${isReception ? data.telefono : 'N/A'}</div>
+                  </div>
+                  
+                  ${headerHtml}
+                  ${mainContentHtml}
+
+                  <div class="mt-12 pt-6 border-t border-slate-300 grid grid-cols-2 gap-8 text-center text-sm">
+                    <div class="border-t border-slate-500 pt-1">Firma del Técnico</div>
+                    <div class="border-t border-slate-500 pt-1">Firma del Cliente (Aceptación)</div>
+                  </div>
+
+                  <p class="text-xs text-slate-400 text-center mt-6">
+                    Este documento certifica la información proporcionada al momento de la ${isReception ? 'recepción' : 'entrega'} del equipo.
+                  </p>
+                </div>
+              </div>
+            `;
+        }
+
+        // =========================================================
+        // 4. LÓGICA DE APLICACIÓN Y EVENTOS
+        // =========================================================
+
+        function attachEventListeners() {
+            const appRoot = document.getElementById('app');
+
+            // 1. Manejo de Navegación (Botones de inicio y Volver)
+            appRoot.querySelectorAll('[data-action="navigate"]').forEach(btn => {
+                btn.onclick = (e) => {
+                    currentView = e.currentTarget.dataset.target;
+                    generatedDoc = null;
+                    renderApp();
+                };
+            });
+
+            // 2. Generación de Documentos
+            const generateReceptionBtn = appRoot.querySelector('[data-action="generate-reception"]');
+            if (generateReceptionBtn) {
+                generateReceptionBtn.onclick = () => {
+                    generatedDoc = 'reception-doc';
+                    renderApp();
+                };
+            }
+            const generateServiceBtn = appRoot.querySelector('[data-action="generate-service"]');
+            if (generateServiceBtn) {
+                generateServiceBtn.onclick = () => {
+                    generatedDoc = 'service-doc';
+                    renderApp();
+                };
+            }
+            
+            // 3. Documento Volver al Formulario
+            const backToFormBtn = appRoot.querySelector('[data-action="back-to-form"]');
+            if (backToFormBtn) {
+                backToFormBtn.onclick = () => {
+                    generatedDoc = null;
+                    renderApp();
+                };
+            }
+
+            // 4. Botón Imprimir
+            appRoot.querySelectorAll('[data-action="print"]').forEach(btn => {
+                btn.onclick = handlePrint;
+            });
+
+            // 5. Manejo de Cambios en Formularios (Input/Select/Textarea)
+            
+            // Revisa si estamos en el formulario de Recepción
+            appRoot.querySelectorAll('.reception-field').forEach(input => {
+                input.onchange = (e) => {
+                    const { name, value, type, checked } = e.target;
+                    // Solo los accesorios son de tipo checkbox
+                    if (type === 'checkbox') {
+                        // El checkbox de accesorios se maneja en el punto 6, pero este es el fallback
+                        receptionData.accesorios[name] = checked;
+                    } else {
+                        receptionData[name] = value;
+                    }
+                    // No es necesario re-renderizar para cada cambio de texto, pero lo hacemos para los checkboxes
+                    if (type === 'checkbox') renderApp(); 
+                };
+                input.oninput = (e) => {
+                    // Actualiza el estado en cada input para las áreas de texto (observaciones/falla)
+                    if (e.target.tagName === 'TEXTAREA' || e.target.type === 'text') {
+                        receptionData[e.target.name] = e.target.value;
+                    }
+                }
+            });
+
+            // Revisa si estamos en el formulario de Servicio
+            appRoot.querySelectorAll('.service-field').forEach(input => {
+                input.onchange = (e) => {
+                    const { name, value } = e.target;
+                    const isCostField = name === 'costoManoObra' || name === 'costoRepuestos';
+                    serviceData[name] = isCostField ? parseFloat(value) || 0 : value;
+                    if (isCostField) renderApp(); // Re-renderiza para actualizar el total
+                };
+                input.oninput = (e) => {
+                    // Actualiza el estado en cada input para las áreas de texto
+                    if (e.target.tagName === 'TEXTAREA' || e.target.type === 'text') {
+                        serviceData[e.target.name] = e.target.value;
+                    }
+                }
+            });
+
+            // 6. Handler Específico para Checkboxes de Accesorios
+            appRoot.querySelectorAll('.accessory-label input[type="checkbox"]').forEach(checkbox => {
+                checkbox.onchange = (e) => {
+                    receptionData.accesorios[e.target.name] = e.target.checked;
+                    renderApp(); // Rerenderiza para mostrar el cambio de ícono
+                };
+            });
+        }
+
+        // Función principal de renderizado
+        function renderApp() {
+            const appRoot = document.getElementById('app');
+            if (!appRoot) return;
+
+            let htmlContent = '';
+
+            // Determina qué vista renderizar
+            if (currentView === 'home') {
+                htmlContent = renderHome();
+            } else if (generatedDoc) {
+                htmlContent = renderGeneratedDocument();
+            } else if (currentView === 'reception') {
+                htmlContent = renderReceptionForm();
+            } else if (currentView === 'service') {
+                htmlContent = renderServiceForm();
+            }
+
+            // Inyecta el HTML en el DOM
+            appRoot.innerHTML = htmlContent;
+            
+            // Adjunta los listeners de eventos para los elementos recién creados
+            attachEventListeners();
+        }
+
+        // Inicia la aplicación al cargar la ventana
+        window.onload = renderApp;
+
+    </script>
+</body>
+</html>
