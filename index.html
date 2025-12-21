@@ -1,310 +1,657 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TechPro v21.5 | Industrial Mobile Edition</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
-
-    <style>
-        :root { --p: #6366f1; --bg: #020617; --card: rgba(15, 23, 42, 0.98); }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: #f1f5f9; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>TechPro v21.0 | Laboratorio Industrial</title>
         
-        /* Estética de Interfaz Industrial */
-        .glass { background: var(--card); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        
-        /* Navegación Híbrida (Sidebar en PC, Bottom Nav en Móvil) */
-        .nav-link { transition: 0.3s; color: #64748b; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; border-radius: 1rem; }
-        .nav-link.active { color: white; background: rgba(99, 102, 241, 0.1); border-bottom: 3px solid var(--p); }
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
 
-        @media (min-width: 1024px) {
-            body { flex-direction: row; }
-            .sidebar { width: 320px; height: 100vh; display: flex; flex-direction: column; margin: 16px; border-radius: 3rem; position: relative; }
-            .nav-link { flex-direction: row; justify-content: flex-start; padding: 18px 24px; font-size: 14px; gap: 15px; border-bottom: none; }
-            .nav-link.active { border-left: 5px solid #fff; background: linear-gradient(90deg, var(--p) 0%, transparent 100%); }
-            .mobile-nav { display: none; }
-        }
+        <style>
+            :root { --p: #6366f1; --bg: #020617; --card: rgba(15, 23, 42, 0.98); }
+            body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: #f1f5f9; height: 100vh; overflow: hidden; }
+            
+            /* Estética de Interfaz */
+            .glass { background: var(--card); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.08); }
+            .nav-link { transition: 0.3s; color: #64748b; cursor: pointer; border-radius: 1.5rem; }
+            .nav-link.active { background: linear-gradient(90deg, var(--p) 0%, transparent 100%); color: white; border-left: 5px solid #fff; }
+            
+            /* Inputs Pro */
+            .ent-input { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); outline: none; transition: 0.3s; color: white; }
+            .ent-input:focus { border-color: var(--p); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2); }
+            
+            /* Sistema de Checklist y Chips */
+            .chip-check { cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 12px 18px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 1rem; font-size: 12px; transition: 0.2s; }
+            .chip-check:hover { background: rgba(255,255,255,0.08); border-color: var(--p); }
+            .chip-check input:checked + span { color: #818cf8; font-weight: 800; }
+            .chip-check:has(input:checked) { border-color: var(--p); background: rgba(99, 102, 241, 0.15); box-shadow: 0 0 15px rgba(99, 102, 241, 0.1); }
 
-        /* Inputs de Alto Contraste */
-        .ent-input { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); outline: none; transition: 0.3s; color: white; -webkit-appearance: none; }
-        .ent-input:focus { border-color: var(--p); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2); }
-        
-        /* Checkbox Profesional */
-        .chip-check { cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 14px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); border-radius: 1.2rem; font-size: 11px; transition: 0.2s; }
-        .chip-check:has(input:checked) { border-color: var(--p); background: rgba(99, 102, 241, 0.15); color: #a5b4fc; }
+            /* Scrollbars Custom */
+            .custom-scroll::-webkit-scrollbar { width: 6px; }
+            .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+            .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
 
-        /* Contenedores de desplazamiento */
-        .scroll-area { flex: 1; overflow-y: auto; padding-bottom: 100px; }
-        @media (min-width: 1024px) { .scroll-area { padding-bottom: 20px; } }
+            /* Animaciones */
+            @keyframes slideIn { from { transform: translateX(30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+            .animate-slide { animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
 
-        /* Impresión */
-        @media print {
-            .no-print { display: none !important; }
-            #print-area { display: block !important; width: 80mm; padding: 5mm; color: black; background: white; font-family: 'Courier New'; font-size: 11px; }
-        }
-    </style>
-</head>
-<body class="flex">
+            /* Impresión Técnica */
+            @media print {
+                .no-print { display: none !important; }
+                #print-area { display: block !important; width: 80mm; padding: 4mm; color: black; background: white; font-family: 'Courier New', Courier, monospace; line-height: 1.1; }
+                .qr-container { display: flex; justify-content: center; margin: 10px 0; }
+                center { font-weight: bold; text-transform: uppercase; }
+            }
 
-    <aside class="no-print sidebar glass hidden lg:flex p-8">
-        <div class="flex items-center gap-4 mb-12">
-            <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center font-black text-2xl italic">T</div>
-            <div>
-                <h1 class="text-xl font-black italic">TECHPRO</h1>
-                <p class="text-[9px] font-bold text-indigo-500 uppercase tracking-widest">Lab System v21.5</p>
+            .drawer { transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); transform: translateX(100%); position: fixed; right: 0; top: 0; height: 100%; width: 500px; z-index: 200; box-shadow: -20px 0 60px rgba(0,0,0,0.8); }
+            .drawer.open { transform: translateX(0); }
+        </style>
+    </head>
+    <body class="flex">
+
+        <aside class="no-print w-72 glass m-4 rounded-[3rem] p-8 flex flex-col z-50">
+            <div class="flex items-center gap-4 mb-12">
+                <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center font-black text-2xl italic shadow-2xl shadow-indigo-600/40">T</div>
+                <div>
+                    <h1 class="text-xl font-black tracking-tighter italic">TECHPRO</h1>
+                    <p class="text-[9px] font-bold text-indigo-500 tracking-[0.3em] uppercase">Lab System v21</p>
+                </div>
+            </div>
+            
+            <nav class="flex-1 space-y-3">
+                <div onclick="ui.view('dash')" id="m-dash" class="nav-link w-full flex items-center gap-4 p-4 active font-bold"><span>📊</span> Dashboard</div>
+                <div onclick="ui.view('adm')" id="m-adm" class="nav-link w-full flex items-center gap-4 p-4 font-bold"><span>📝</span> Admisión</div>
+                <div onclick="ui.view('taller')" id="m-taller" class="nav-link w-full flex items-center gap-4 p-4 font-bold"><span>🔧</span> Taller / Lab</div>
+                <div onclick="ui.view('inv')" id="m-inv" class="nav-link w-full flex items-center gap-4 p-4 font-bold"><span>📦</span> Inventario</div>
+                <div onclick="ui.view('history')" id="m-history" class="nav-link w-full flex items-center gap-4 p-4 font-bold"><span>📚</span> Historial</div>
+            </nav>
+
+            <div class="mt-auto space-y-4">
+                <div class="p-5 bg-indigo-600/5 rounded-[2rem] border border-indigo-600/10 text-center">
+                    <p class="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-widest">Hora Sistema</p>
+                    <p id="clock" class="text-2xl font-black text-indigo-400 font-mono italic">00:00:00</p>
+                </div>
+                <button onclick="ui.view('config')" class="w-full p-4 glass rounded-2xl text-xs font-bold hover:bg-white/5 transition-all uppercase">Configuración</button>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col p-8 overflow-hidden">
+            <header class="no-print flex justify-between items-center mb-10">
+                <h2 id="view-title" class="text-5xl font-black italic tracking-tighter uppercase text-white/90">Dashboard</h2>
+                <div class="flex gap-4">
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 opacity-30">🔍</span>
+                        <input type="text" oninput="logic.search(this.value)" placeholder="Buscar por cliente, folio, IMEI o modelo..." class="ent-input w-96 p-4 pl-12 rounded-2xl text-xs font-bold">
+                    </div>
+                </div>
+            </header>
+
+            <section id="main-view" class="flex-1 overflow-y-auto pr-4 custom-scroll animate-slide"></section>
+        </main>
+
+        <div id="drawer-inv" class="drawer glass p-10 flex flex-col">
+            <div class="flex justify-between items-center mb-10">
+                <h3 class="text-3xl font-black italic uppercase">Nueva Refacción</h3>
+                <button onclick="ui.closeDrawer('drawer-inv')" class="w-12 h-12 glass rounded-full text-xl hover:bg-rose-600/20">✕</button>
+            </div>
+            <div class="space-y-6 flex-1">
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 ml-2 uppercase tracking-widest">Descripción</label>
+                    <input id="inv-name" class="ent-input w-full p-5 rounded-2xl font-bold" placeholder="Eje: Pantalla iPhone 13 OLED">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-500 ml-2 uppercase tracking-widest">Precio Venta</label>
+                        <input id="inv-price" type="number" class="ent-input w-full p-5 rounded-2xl text-emerald-400 font-black text-xl" placeholder="0.00">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-500 ml-2 uppercase tracking-widest">Stock</label>
+                        <input id="inv-stock" type="number" class="ent-input w-full p-5 rounded-2xl font-bold" placeholder="0">
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-slate-500 ml-2 uppercase tracking-widest">Categoría</label>
+                    <select id="inv-cat" class="ent-input w-full p-5 rounded-2xl font-bold">
+                        <option value="Pantallas">Pantallas</option>
+                        <option value="Baterías">Baterías</option>
+                        <option value="Carga">Puertos de Carga</option>
+                        <option value="Micro">Micro Componentes</option>
+                        <option value="Software">Licencias / Software</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="logic.saveProduct()" class="w-full py-6 bg-indigo-600 rounded-[2rem] font-black uppercase text-lg shadow-2xl hover:bg-indigo-500 transition-all">Añadir al Inventario</button>
+        </div>
+
+        <div id="modal-container" class="hidden fixed inset-0 bg-black/98 backdrop-blur-2xl z-[100] flex items-center justify-center p-6">
+            <div id="modal-content" class="glass w-full max-w-6xl p-12 rounded-[4rem] relative shadow-2xl max-h-[90vh] overflow-y-auto custom-scroll">
+                <button onclick="ui.closeModal()" class="absolute right-10 top-10 text-slate-500 text-3xl hover:text-white transition-colors">✕</button>
+                <div id="modal-body"></div>
             </div>
         </div>
-        
-        <nav class="flex-1 space-y-3">
-            <div onclick="ui.view('dash')" id="m-dash-d" class="nav-link active"><span>📊</span> Dashboard</div>
-            <div onclick="ui.view('adm')" id="m-adm-d" class="nav-link"><span>📝</span> Admisión</div>
-            <div onclick="ui.view('taller')" id="m-taller-d" class="nav-link"><span>🔧</span> Laboratorio</div>
-            <div onclick="ui.view('inv')" id="m-inv-d" class="nav-link"><span>📦</span> Inventario</div>
-            <div onclick="ui.view('history')" id="m-history-d" class="nav-link"><span>📚</span> Historial</div>
-        </nav>
 
-        <div class="mt-auto p-6 bg-indigo-600/5 rounded-[2rem] border border-white/5 text-center">
-            <p id="clock" class="text-2xl font-black text-indigo-400 font-mono italic">00:00:00</p>
-        </div>
-    </aside>
+        <div id="print-area" class="hidden"></div>
 
-    <nav class="no-print mobile-nav glass fixed bottom-0 left-0 right-0 z-[100] flex justify-around p-3 lg:hidden">
-        <div onclick="ui.view('dash')" id="m-dash-m" class="nav-link active"><span>📊</span>Inicio</div>
-        <div onclick="ui.view('adm')" id="m-adm-m" class="nav-link"><span>📝</span>Nuevo</div>
-        <div onclick="ui.view('taller')" id="m-taller-m" class="nav-link"><span>🔧</span>Lab</div>
-        <div onclick="ui.view('inv')" id="m-inv-m" class="nav-link"><span>📦</span>Stock</div>
-        <div onclick="ui.view('history')" id="m-history-m" class="nav-link"><span>📚</span>Hist</div>
-    </nav>
+        <script>
+            // BASE DE DATOS LOCAL
+            let db = {
+                tickets: JSON.parse(localStorage.getItem('tt_v21_tks')) || [],
+                inventory: JSON.parse(localStorage.getItem('tt_v21_inv')) || [],
+                config: JSON.parse(localStorage.getItem('tt_v21_cfg')) || { 
+                    name: "TECNI-LAB PRO", 
+                    address: "CALLE DE LAS REPARACIONES 123", 
+                    tel: "55-8888-7777", 
+                    warranty: 90,
+                    currency: "$"
+                }
+            };
 
-    <main class="flex-1 flex flex-col p-4 lg:p-10 overflow-hidden">
-        <header class="no-print flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-            <h2 id="view-title" class="text-4xl lg:text-6xl font-black italic uppercase tracking-tighter">Dashboard</h2>
-            <div class="w-full md:w-auto">
-                <input type="text" oninput="logic.search(this.value)" placeholder="Buscar cliente, folio, IMEI..." class="ent-input w-full md:w-96 p-4 rounded-2xl text-xs font-bold">
-            </div>
-        </header>
+            const sync = () => {
+                localStorage.setItem('tt_v21_tks', JSON.stringify(db.tickets));
+                localStorage.setItem('tt_v21_inv', JSON.stringify(db.inventory));
+                localStorage.setItem('tt_v21_cfg', JSON.stringify(db.config));
+            };
 
-        <section id="main-view" class="scroll-area pr-2"></section>
-    </main>
+            // LÓGICA DE NEGOCIO
+            const logic = {
+                createTicket(e) {
+                    e.preventDefault();
+                    const f = new FormData(e.target);
+                    const id = Date.now();
+                    
+                    const objetos = [];
+                    document.querySelectorAll('input[name="objetos"]:checked').forEach(o => objetos.push(o.value));
+                    if(f.get('otros_obj')) objetos.push(f.get('otros_obj'));
 
-    <div id="modal-container" class="hidden fixed inset-0 bg-black/98 backdrop-blur-2xl z-[200] overflow-y-auto p-4 lg:p-10">
-        <div class="glass w-full max-w-6xl mx-auto p-6 lg:p-14 rounded-[2.5rem] lg:rounded-[4rem] relative shadow-2xl my-4">
-            <button onclick="ui.closeModal()" class="absolute right-6 top-6 lg:right-10 lg:top-10 text-slate-500 text-3xl">✕</button>
-            <div id="modal-body"></div>
-        </div>
-    </div>
+                    const ticket = {
+                        id, 
+                        folio: 'TK-' + id.toString().slice(-5), 
+                        date: id,
+                        client: f.get('client'), 
+                        whatsapp: f.get('whatsapp'),
+                        type: f.get('dev_type'), 
+                        device: f.get('device'), 
+                        serial: f.get('serial'), 
+                        objetos: objetos.join(', '),
+                        physical: f.get('physical'), 
+                        fault: f.get('fault'),
+                        pass: f.get('pass'), 
+                        prio: f.get('prio'),
+                        status: 'Recibido', 
+                        total: 0, 
+                        diagnosis: '', 
+                        work_done: []
+                    };
 
-    <div id="print-area" class="hidden"></div>
+                    db.tickets.unshift(ticket);
+                    sync();
+                    this.print(id, 'recepcion');
+                    ui.view('taller');
+                },
 
-    <script>
-        // BASE DE DATOS Y LÓGICA V21 MANTENIDA
-        let db = {
-            tickets: JSON.parse(localStorage.getItem('tt_v21_tks')) || [],
-            inventory: JSON.parse(localStorage.getItem('tt_v21_inv')) || [],
-            config: JSON.parse(localStorage.getItem('tt_v21_cfg')) || { name: "LAB PRO V21", address: "CALLE TECH 101", tel: "555-000", warranty: 90, currency: "$" }
-        };
+                manage(id) {
+                    const t = db.tickets.find(x => x.id === id);
+                    ui.openModal(`
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                            <div class="lg:col-span-8 space-y-10">
+                                <div>
+                                    <div class="flex items-center gap-4 mb-2">
+                                        <span class="badge ${t.prio==='Urgente'?'bg-rose-600':'bg-indigo-600'} text-xs">${t.prio}</span>
+                                        <span class="text-indigo-500 font-mono font-bold">${t.folio}</span>
+                                    </div>
+                                    <h3 class="text-5xl font-black italic uppercase">${t.client}</h3>
+                                    <p class="text-slate-500 font-bold uppercase tracking-widest mt-2">${t.type}: ${t.device} | SN: ${t.serial || 'N/A'}</p>
+                                </div>
 
-        const sync = () => { localStorage.setItem('tt_v21_tks', JSON.stringify(db.tickets)); localStorage.setItem('tt_v21_inv', JSON.stringify(db.inventory)); localStorage.setItem('tt_v21_cfg', JSON.stringify(db.config)); };
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div class="space-y-4">
+                                        <h4 class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Checklist de Mantenimiento</h4>
+                                        <div class="grid grid-cols-1 gap-2">
+                                            ${['Limpieza Interna Profunda', 'Cambio de Pasta Térmica', 'Limpieza de Puertos', 'Baño Isopropílico', 'Optimización de Inicio', 'Eliminación de Virus', 'Actualización de Firmware', 'Respaldo de Sistema'].map(item => `
+                                                <label class="chip-check">
+                                                    <input type="checkbox" name="work_item" value="${item}" ${t.work_done.includes(item)?'checked':''} class="hidden">
+                                                    <span>✔️ ${item}</span>
+                                                </label>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                    <div class="space-y-4">
+                                        <h4 class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Bitácora de Hardware</h4>
+                                        <div class="grid grid-cols-1 gap-2">
+                                            ${['Cambio de Pantalla', 'Cambio de Batería', 'Reparación de Centro de Carga', 'Reballing de IC', 'Reparación de Botones', 'Sustitución de Teclado', 'Ampliación de RAM/SSD', 'Cambio de Ventilador'].map(item => `
+                                                <label class="chip-check">
+                                                    <input type="checkbox" name="work_item" value="${item}" ${t.work_done.includes(item)?'checked':''} class="hidden">
+                                                    <span>⚙️ ${item}</span>
+                                                </label>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                </div>
 
-        const logic = {
-            createTicket(e) {
-                e.preventDefault();
-                const f = new FormData(e.target);
-                const id = Date.now();
-                const objetos = [];
-                document.querySelectorAll('input[name="objetos"]:checked').forEach(o => objetos.push(o.value));
-                if(f.get('otros_obj')) objetos.push(f.get('otros_obj'));
+                                <div class="space-y-3">
+                                    <h4 class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Informe Técnico Final</h4>
+                                    <textarea id="u-diag" class="ent-input w-full p-8 rounded-[2.5rem] h-48 font-semibold text-sm" placeholder="Escribe el reporte detallado para el cliente...">${t.diagnosis || ''}</textarea>
+                                </div>
+                            </div>
 
-                const t = {
-                    id, folio: 'TK-' + id.toString().slice(-5), date: id,
-                    client: f.get('client'), whatsapp: f.get('whatsapp'),
-                    type: f.get('dev_type'), device: f.get('device'), serial: f.get('serial'),
-                    objetos: objetos.join(', '), physical: f.get('physical'), fault: f.get('fault'),
-                    pass: f.get('pass'), prio: f.get('prio'), status: 'Recibido', total: 0,
-                    diagnosis: '', work_done: []
-                };
-                db.tickets.unshift(t); sync(); this.print(id, 'recepcion'); ui.view('taller');
-            },
+                            <div class="lg:col-span-4 space-y-6">
+                                <div class="glass p-8 rounded-[3rem] border-indigo-600/20 bg-indigo-600/5">
+                                    <h4 class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-6 text-center">Estado de la Orden</h4>
+                                    
+                                    <div class="space-y-6">
+                                        <div class="space-y-2">
+                                            <label class="text-[9px] font-black text-slate-500 uppercase ml-2">Estatus en Laboratorio</label>
+                                            <select id="u-status" class="ent-input w-full p-4 rounded-xl font-bold">
+                                                <option value="Recibido" ${t.status==='Recibido'?'selected':''}>Recibido</option>
+                                                <option value="En Revisión" ${t.status==='En Revisión'?'selected':''}>En Revisión</option>
+                                                <option value="Esperando Refacción" ${t.status==='Esperando Refacción'?'selected':''}>Esperando Refacción</option>
+                                                <option value="Taller" ${t.status==='Taller'?'selected':''}>En Taller / Mano de Obra</option>
+                                                <option value="Listo" ${t.status==='Listo'?'selected':''}>Listo para Entrega</option>
+                                            </select>
+                                        </div>
 
-            manage(id) {
-                const t = db.tickets.find(x => x.id === id);
-                ui.openModal(`
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                        <div class="lg:col-span-8 space-y-8">
-                            <div>
-                                <h3 class="text-4xl lg:text-5xl font-black italic uppercase text-indigo-400">${t.folio}</h3>
-                                <p class="text-slate-500 font-bold uppercase tracking-widest mt-2">${t.client} | ${t.device}</p>
+                                        <div class="space-y-2">
+                                            <label class="text-[9px] font-black text-slate-500 uppercase ml-2">Total a Cobrar</label>
+                                            <div class="relative">
+                                                <span class="absolute left-4 top-1/2 -translate-y-1/2 font-black text-emerald-400 text-xl">${db.config.currency}</span>
+                                                <input id="u-total" type="number" value="${t.total}" class="ent-input w-full p-5 pl-10 rounded-2xl text-emerald-400 font-black text-3xl">
+                                            </div>
+                                        </div>
+
+                                        <div class="pt-6 space-y-3">
+                                            <button onclick="logic.commit(${t.id}, false)" class="w-full bg-white/5 py-4 rounded-2xl font-black uppercase text-[10px] hover:bg-white/10 tracking-widest transition-all">Guardar Progreso</button>
+                                            <button onclick="logic.print(${t.id}, 'diagnostico')" class="w-full border border-indigo-600/30 text-indigo-400 py-4 rounded-2xl font-black uppercase text-[10px] hover:bg-indigo-600/10 tracking-widest transition-all">Imprimir Diagnóstico</button>
+                                            <hr class="border-white/5 my-4">
+                                            <button onclick="logic.commit(${t.id}, true)" class="w-full bg-indigo-600 py-6 rounded-[2rem] font-black uppercase text-xs shadow-2xl shadow-indigo-600/30 hover:bg-indigo-500 transform hover:-translate-y-1 transition-all">Finalizar y Entregar</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="glass p-6 rounded-[2rem] border-white/5">
+                                    <p class="text-[9px] text-slate-500 font-bold uppercase text-center mb-2">Información de Recepción</p>
+                                    <p class="text-[11px] text-slate-300"><b>Accesorios:</b> ${t.objetos || 'Ninguno'}</p>
+                                    <p class="text-[11px] text-slate-300 mt-2"><b>Pass:</b> <span class="font-mono text-indigo-400">${t.pass || 'Sin PIN'}</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                },
+
+                commit(id, deliver) {
+                    const t = db.tickets.find(x => x.id === id);
+                    t.status = deliver ? 'Entregado' : document.getElementById('u-status').value;
+                    t.total = document.getElementById('u-total').value;
+                    t.diagnosis = document.getElementById('u-diag').value;
+                    
+                    const jobs = [];
+                    document.querySelectorAll('input[name="work_item"]:checked').forEach(j => jobs.push(j.value));
+                    t.work_done = jobs;
+
+                    sync();
+                    ui.closeModal();
+                    if(deliver) this.print(id, 'entrega');
+                    ui.view(deliver ? 'history' : 'taller');
+                },
+
+                print(id, type) {
+                    const t = db.tickets.find(x => x.id === id);
+                    const area = document.getElementById('print-area');
+                    let header = `<center><b style="font-size:16px">${db.config.name}</b><br>${db.config.address}<br>Tel: ${db.config.tel}<br>----------------------------</center>`;
+
+                    if(type === 'recepcion') {
+                        area.innerHTML = `${header}
+                            <center><b>ORDEN DE ENTRADA: ${t.folio}</b></center><br>
+                            <b>FECHA:</b> ${new Date(t.date).toLocaleString()}<br>
+                            ----------------------------<br>
+                            <b>CLIENTE:</b> ${t.client}<br>
+                            <b>TEL:</b> ${t.whatsapp}<br>
+                            <b>EQUIPO:</b> [${t.type}] ${t.device}<br>
+                            <b>S/N:</b> ${t.serial || 'N/A'}<br>
+                            <b>FALLA:</b> ${t.fault}<br>
+                            <b>ACCESORIOS:</b> ${t.objetos || 'Solo equipo'}<br>
+                            <b>FÍSICO:</b> ${t.physical}<br>
+                            <b>PASS:</b> ${t.pass || 'N/A'}<br>
+                            ----------------------------<br>
+                            <div class="qr-container" id="qr-p"></div><br>
+                            <center>FIRMA DE CONFORMIDAD</center><br>
+                            <p style="font-size:8px; text-align:justify">Al firmar, el cliente acepta que el equipo se recibe para diagnóstico. No nos hacemos responsables por pérdida de información.</p>`;
+                        new QRCode(document.getElementById("qr-p"), { text: t.folio, width: 80, height: 80 });
+                    } else if(type === 'diagnostico') {
+                        area.innerHTML = `${header}
+                            <center><b>REPORTE TÉCNICO</b></center><br>
+                            <b>ORDEN:</b> ${t.folio}<br>
+                            <b>EQUIPO:</b> ${t.device}<br>
+                            ----------------------------<br>
+                            <b>TAREAS REALIZADAS:</b><br>
+                            ${t.work_done.length > 0 ? t.work_done.map(j => '• ' + j).join('<br>') : 'En proceso de revisión'}<br><br>
+                            <b>DIAGNÓSTICO:</b><br>${t.diagnosis || 'Pendiente'}<br>
+                            ----------------------------<br>
+                            <center><b style="font-size:14px">PRESUPUESTO: ${db.config.currency}${t.total}</b></center>`;
+                    } else {
+                        area.innerHTML = `${header}
+                            <center><b>TICKET DE SALIDA</b></center><br>
+                            <b>EQUIPO:</b> ${t.device}<br>
+                            <b>FECHA ENTREGA:</b> ${new Date().toLocaleDateString()}<br>
+                            ----------------------------<br>
+                            <b>TRABAJOS FINALIZADOS:</b><br>
+                            ${t.work_done.map(j => '• ' + j).join('<br>')}<br><br>
+                            <b>TOTAL PAGADO: ${db.config.currency}${t.total}</b><br>
+                            ----------------------------<br>
+                            <b>GARANTÍA: ${db.config.warranty} DÍAS</b><br>
+                            Vence el: ${new Date(Date.now() + db.config.warranty*86400000).toLocaleDateString()}<br><br>
+                            <center>¡GRACIAS POR SU PREFERENCIA!</center>`;
+                    }
+                    setTimeout(() => { window.print(); }, 500);
+                },
+
+                saveProduct() {
+                    const name = document.getElementById('inv-name').value;
+                    const price = document.getElementById('inv-price').value;
+                    const stock = document.getElementById('inv-stock').value;
+                    const cat = document.getElementById('inv-cat').value;
+                    
+                    if(name && price && stock) {
+                        db.inventory.push({ name, price, stock: parseInt(stock), cat });
+                        sync();
+                        ui.closeDrawer('drawer-inv');
+                        ui.view('inv');
+                    }
+                },
+
+                search(q) {
+                    if(!q) return ui.view('dash');
+                    const query = q.toLowerCase();
+                    const filtered = db.tickets.filter(t => 
+                        t.client.toLowerCase().includes(query) || 
+                        t.folio.toLowerCase().includes(query) || 
+                        t.device.toLowerCase().includes(query) ||
+                        t.serial?.toLowerCase().includes(query)
+                    );
+                    
+                    const s = document.getElementById('main-view');
+                    s.innerHTML = `<div class="grid grid-cols-1 gap-4">
+                        <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-[0.3em] mb-4">Resultados de Búsqueda</h3>
+                        ${filtered.map(t => this.renderTicketCard(t)).join('')}
+                    </div>`;
+                },
+
+                renderTicketCard(t) {
+                    return `
+                        <div class="glass p-8 rounded-[2.5rem] flex justify-between items-center hover:border-indigo-600/40 transition-all group">
+                            <div class="flex items-center gap-8">
+                                <div class="bg-black/40 p-5 rounded-3xl text-center border border-white/5">
+                                    <p class="text-[10px] font-black text-indigo-400">${t.folio}</p>
+                                    <p class="text-[8px] font-bold text-slate-500 uppercase">${t.type}</p>
+                                </div>
+                                <div>
+                                    <h4 class="text-2xl font-black italic group-hover:text-indigo-400 transition-colors">${t.client}</h4>
+                                    <p class="text-xs font-bold text-slate-500 uppercase">${t.device} • <span class="text-indigo-500/80">${t.status}</span></p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                ${t.prio === 'Urgente' ? '<span class="w-2 h-2 rounded-full bg-rose-600 animate-pulse"></span>' : ''}
+                                <button onclick="logic.manage(${t.id})" class="bg-white text-black px-10 py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl hover:bg-indigo-600 hover:text-white transition-all">Abrir Expediente</button>
+                            </div>
+                        </div>`;
+                }
+            };
+
+            const ui = {
+                view(id) {
+                    const s = document.getElementById('main-view');
+                    document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+                    document.getElementById('m-'+id)?.classList.add('active');
+                    document.getElementById('view-title').innerText = 
+                        id === 'adm' ? 'Admisión de Equipos' : 
+                        id === 'taller' ? 'Laboratorio Técnico' : 
+                        id === 'inv' ? 'Almacén de Refacciones' : 
+                        id === 'history' ? 'Historial de Servicios' : 'Panel de Control';
+                    
+                    s.innerHTML = '';
+                    if(id === 'dash') this.rDash(s);
+                    if(id === 'adm') this.rAdm(s);
+                    if(id === 'taller') this.rTaller(s);
+                    if(id === 'inv') this.rInv(s);
+                    if(id === 'history') this.rHistory(s);
+                    if(id === 'config') this.rConfig(s);
+                },
+
+                rDash(s) {
+                    const act = db.tickets.filter(t => t.status !== 'Entregado').length;
+                    const urgen = db.tickets.filter(t => t.status !== 'Entregado' && t.prio === 'Urgente').length;
+                    const ready = db.tickets.filter(t => t.status === 'Listo').length;
+                    const stock = db.inventory.length;
+
+                    s.innerHTML = `
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                            <div class="glass p-10 rounded-[3rem] border-b-8 border-indigo-600">
+                                <p class="text-[10px] font-black text-slate-500 uppercase">En Proceso</p>
+                                <h3 class="text-7xl font-black mt-2 italic">${act}</h3>
+                            </div>
+                            <div class="glass p-10 rounded-[3rem] border-b-8 border-rose-600">
+                                <p class="text-[10px] font-black text-slate-500 uppercase">Urgencias</p>
+                                <h3 class="text-7xl font-black mt-2 italic text-rose-500">${urgen}</h3>
+                            </div>
+                            <div class="glass p-10 rounded-[3rem] border-b-8 border-emerald-500">
+                                <p class="text-[10px] font-black text-slate-500 uppercase">Por Entregar</p>
+                                <h3 class="text-7xl font-black mt-2 italic text-emerald-500">${ready}</h3>
+                            </div>
+                            <div class="glass p-10 rounded-[3rem] border-b-8 border-slate-700">
+                                <p class="text-[10px] font-black text-slate-500 uppercase">Refacciones</p>
+                                <h3 class="text-7xl font-black mt-2 italic">${stock}</h3>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div class="glass p-10 rounded-[3rem]">
+                                <h4 class="text-xs font-black text-indigo-400 uppercase tracking-widest mb-6 italic">Ingresos Recientes</h4>
+                                <div class="space-y-4">
+                                    ${db.tickets.slice(0, 5).map(t => `
+                                        <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+                                            <div><b class="text-sm italic">${t.client}</b><br><small class="text-[10px] text-slate-500">${t.device}</small></div>
+                                            <span class="text-[10px] font-black text-indigo-400">${t.folio}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            <div class="glass p-10 rounded-[3rem]">
+                                <h4 class="text-xs font-black text-indigo-400 uppercase tracking-widest mb-6 italic">Resumen de Almacén</h4>
+                                <div class="space-y-4">
+                                    ${db.inventory.slice(0, 5).map(i => `
+                                        <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+                                            <div><b class="text-sm italic">${i.name}</b><br><small class="text-[10px] text-slate-500">${i.cat}</small></div>
+                                            <span class="text-sm font-black text-emerald-400">${db.config.currency}${i.price}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>`;
+                },
+
+                rAdm(s) {
+                    s.innerHTML = `
+                    <div class="max-w-6xl mx-auto glass p-14 rounded-[4rem]">
+                        <form onsubmit="logic.createTicket(event)" class="space-y-10">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                <div class="lg:col-span-2 space-y-2">
+                                    <label class="text-[10px] font-black text-slate-500 ml-4 uppercase italic">Propietario</label>
+                                    <input name="client" required placeholder="Nombre completo del cliente" class="ent-input w-full p-6 rounded-[1.5rem] font-bold">
+                                </div>
+                                <div class="lg:col-span-2 space-y-2">
+                                    <label class="text-[10px] font-black text-slate-500 ml-4 uppercase italic">Contacto WhatsApp</label>
+                                    <input name="whatsapp" required placeholder="Ej: 5512345678" class="ent-input w-full p-6 rounded-[1.5rem] font-bold">
+                                </div>
+                                
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-slate-500 ml-4 uppercase italic">Tipo</label>
+                                    <select name="dev_type" class="ent-input w-full p-6 rounded-[1.5rem] font-bold text-indigo-400">
+                                        <option value="Smartphone">CELULAR</option>
+                                        <option value="Laptop">LAPTOP</option>
+                                        <option value="PC">PC ESCRITORIO</option>
+                                        <option value="Tablet">TABLET</option>
+                                        <option value="Console">CONSOLA</option>
+                                        <option value="Mac">MACBOOK / IMAC</option>
+                                        <option value="Watch">WATCH</option>
+                                    </select>
+                                </div>
+                                <div class="lg:col-span-2 space-y-2">
+                                    <label class="text-[10px] font-black text-slate-500 ml-4 uppercase italic">Marca y Modelo</label>
+                                    <input name="device" required placeholder="Ej: Samsung S22 Ultra / HP Victus" class="ent-input w-full p-6 rounded-[1.5rem] font-bold">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-slate-500 ml-4 uppercase italic">IMEI / Serie</label>
+                                    <input name="serial" placeholder="Número de identificación" class="ent-input w-full p-6 rounded-[1.5rem] font-bold">
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <label class="text-[10px] font-black text-slate-500 ml-4 uppercase italic">Accesorios y Objetos Dejados</label>
+                                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                                    ${['Cargador', 'Cable USB', 'Funda/Case', 'Teclado', 'Mouse', 'Mochila', 'Caja', 'Batería', 'SIM Card', 'Micro SD', 'Adaptador'].map(obj => `
+                                        <label class="chip-check">
+                                            <input type="checkbox" name="objetos" value="${obj}" class="hidden">
+                                            <span>${obj}</span>
+                                        </label>
+                                    `).join('')}
+                                </div>
+                                <input name="otros_obj" placeholder="Otros objetos específicos..." class="ent-input w-full p-4 rounded-2xl mt-4 text-xs">
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-slate-500 ml-4 uppercase italic">Estado Físico</label>
+                                    <select name="physical" class="ent-input w-full p-5 rounded-2xl">
+                                        <option value="Excelente">ESTADO EXCELENTE</option>
+                                        <option value="Rayas Leves">RAYAS LEVES</option>
+                                        <option value="Golpes/Abolladuras">GOLPES / ABOLADURAS</option>
+                                        <option value="Pantalla Rota">PANTALLA ROTA</option>
+                                        <option value="Mojado">DAÑO POR LÍQUIDO</option>
+                                        <option value="Doblado">EQUIPO DOBLADO</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-slate-500 ml-4 uppercase italic">Contraseña / PIN</label>
+                                    <input name="pass" placeholder="Patrón o PIN" class="ent-input w-full p-5 rounded-2xl text-center font-mono tracking-widest">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-slate-500 ml-4 uppercase italic">Prioridad</label>
+                                    <select name="prio" class="ent-input w-full p-5 rounded-2xl font-black italic">
+                                        <option value="Normal">TURNO NORMAL</option>
+                                        <option value="Urgente">PRIORIDAD MÁXIMA (URGENTE)</option>
+                                    </select>
+                                </div>
                             </div>
                             
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="space-y-4">
-                                    <h4 class="text-[10px] font-black text-indigo-400 uppercase italic tracking-[0.2em]">Checklist Mantenimiento</h4>
-                                    <div class="grid grid-cols-1 gap-2">
-                                        ${['Limpieza Interna', 'Pasta Térmica', 'Optimización', 'Baño Isopropílico', 'Eliminación Virus'].map(i => `
-                                            <label class="chip-check"><input type="checkbox" name="work_item" value="${i}" ${t.work_done.includes(i)?'checked':''} class="hidden"><span>✔️ ${i}</span></label>
-                                        `).join('')}
-                                    </div>
-                                </div>
-                                <div class="space-y-4">
-                                    <h4 class="text-[10px] font-black text-indigo-400 uppercase italic tracking-[0.2em]">Checklist Reparación</h4>
-                                    <div class="grid grid-cols-1 gap-2">
-                                        ${['Pantalla', 'Batería', 'Pin de Carga', 'Reballing IC', 'Cámaras'].map(i => `
-                                            <label class="chip-check"><input type="checkbox" name="work_item" value="${i}" ${t.work_done.includes(i)?'checked':''} class="hidden"><span>⚙️ ${i}</span></label>
-                                        `).join('')}
-                                    </div>
-                                </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-500 ml-4 uppercase italic">Diagnóstico Inicial / Falla Reportada</label>
+                                <textarea name="fault" required placeholder="Describe detalladamente el problema que presenta el equipo..." class="ent-input w-full p-8 rounded-[3rem] h-40 text-lg font-semibold"></textarea>
                             </div>
-
-                            <textarea id="u-diag" class="ent-input w-full p-6 lg:p-8 rounded-[2rem] lg:rounded-[3rem] h-48 font-semibold" placeholder="Reporte técnico detallado...">${t.diagnosis || ''}</textarea>
-                        </div>
-
-                        <div class="lg:col-span-4 space-y-6">
-                            <div class="glass p-8 rounded-[3rem] border-indigo-600/20 bg-indigo-600/5">
-                                <div class="space-y-6">
-                                    <div>
-                                        <label class="text-[10px] font-black text-slate-500 uppercase ml-2">Estado</label>
-                                        <select id="u-status" class="ent-input w-full p-4 rounded-xl font-bold">
-                                            <option value="Taller" ${t.status==='Taller'?'selected':''}>En Taller</option>
-                                            <option value="Listo" ${t.status==='Listo'?'selected':''}>Listo</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="text-[10px] font-black text-slate-500 uppercase ml-2">Total ${db.config.currency}</label>
-                                        <input id="u-total" type="number" value="${t.total}" class="ent-input w-full p-5 rounded-2xl text-emerald-400 font-black text-3xl">
-                                    </div>
-                                    <div class="flex flex-col gap-3">
-                                        <button onclick="logic.commit(${t.id}, false)" class="w-full bg-white/10 py-4 rounded-2xl font-black uppercase text-[10px]">Guardar</button>
-                                        <button onclick="logic.print(${t.id}, 'diagnostico')" class="w-full border border-indigo-600/30 text-indigo-400 py-4 rounded-2xl font-black uppercase text-[10px]">Imprimir</button>
-                                        <button onclick="logic.commit(${t.id}, true)" class="w-full bg-indigo-600 py-6 rounded-[2rem] font-black uppercase text-xs shadow-2xl">Entregar Equipo</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `);
-            },
-
-            commit(id, deliver) {
-                const t = db.tickets.find(x => x.id === id);
-                t.status = deliver ? 'Entregado' : document.getElementById('u-status').value;
-                t.total = document.getElementById('u-total').value;
-                t.diagnosis = document.getElementById('u-diag').value;
-                const jobs = [];
-                document.querySelectorAll('input[name="work_item"]:checked').forEach(j => jobs.push(j.value));
-                t.work_done = jobs;
-                sync(); ui.closeModal(); if(deliver) this.print(id, 'entrega'); ui.view(deliver ? 'history' : 'taller');
-            },
-
-            print(id, type) {
-                const t = db.tickets.find(x => x.id === id);
-                const area = document.getElementById('print-area');
-                let h = `<center><b>${db.config.name}</b><br>${db.config.tel}<br>--------------------------</center>`;
-                if(type === 'recepcion') {
-                    area.innerHTML = `${h}<center>FOLIO: ${t.folio}</center><br>CLIENTE: ${t.client}<br>EQUIPO: ${t.device}<br>FALLA: ${t.fault}<br>PASS: ${t.pass}<br><br><div id="qr-p" style="display:flex;justify-content:center"></div>`;
-                    new QRCode(document.getElementById("qr-p"), { text: t.folio, width: 80, height: 80 });
-                } else {
-                    area.innerHTML = `${h}<center>SALIDA: ${t.folio}</center><br>EQUIPO: ${t.device}<br>PAGADO: ${db.config.currency}${t.total}<br>--------------------------<br><center>GARANTIA: ${db.config.warranty} DIAS</center>`;
-                }
-                setTimeout(() => { window.print(); }, 500);
-            },
-
-            search(q) {
-                const f = db.tickets.filter(t => t.client.toLowerCase().includes(q.toLowerCase()) || t.folio.toLowerCase().includes(q.toLowerCase()));
-                document.getElementById('main-view').innerHTML = f.map(t => ui.renderTicketCard(t)).join('');
-            }
-        };
-
-        const ui = {
-            view(id) {
-                const s = document.getElementById('main-view');
-                document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
-                document.getElementById('m-'+id+'-d')?.classList.add('active');
-                document.getElementById('m-'+id+'-m')?.classList.add('active');
-                document.getElementById('view-title').innerText = id === 'adm' ? 'Admisión' : (id === 'taller' ? 'Taller' : id.toUpperCase());
-                s.innerHTML = '';
-                if(id === 'dash') this.rDash(s);
-                if(id === 'adm') this.rAdm(s);
-                if(id === 'taller') this.rTaller(s);
-                if(id === 'inv') this.rInv(s);
-                if(id === 'history') this.rHistory(s);
-            },
-
-            rDash(s) {
-                const act = db.tickets.filter(t => t.status !== 'Entregado').length;
-                s.innerHTML = `
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div class="glass p-10 rounded-[3rem] border-b-8 border-indigo-600">
-                            <p class="text-[10px] font-black text-slate-500 uppercase italic">Laboratorio</p>
-                            <h3 class="text-7xl font-black mt-2 italic">${act}</h3>
-                        </div>
-                        <div class="glass p-10 rounded-[3rem] border-b-8 border-emerald-500">
-                            <p class="text-[10px] font-black text-slate-500 uppercase italic">Refacciones</p>
-                            <h3 class="text-7xl font-black mt-2 italic text-emerald-500">${db.inventory.length}</h3>
-                        </div>
+                            
+                            <button type="submit" class="w-full py-8 bg-indigo-600 rounded-[3.5rem] font-black text-3xl uppercase italic shadow-2xl shadow-indigo-600/30 hover:bg-indigo-500 transform hover:-translate-y-1 transition-all">Ingresar al Laboratorio</button>
+                        </form>
                     </div>`;
-            },
+                },
 
-            rAdm(s) {
-                s.innerHTML = `
-                <div class="max-w-5xl mx-auto glass p-8 lg:p-14 rounded-[3rem] lg:rounded-[4rem]">
-                    <form onsubmit="logic.createTicket(event)" class="space-y-8">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <input name="client" required placeholder="Cliente" class="ent-input p-6 rounded-2xl font-bold">
-                            <input name="whatsapp" required placeholder="WhatsApp" class="ent-input p-6 rounded-2xl">
-                            <select name="dev_type" class="ent-input p-6 rounded-2xl font-bold text-indigo-400">
-                                <option>Laptop</option><option>Celular</option><option>Consola</option><option>Tablet</option>
-                            </select>
-                            <input name="device" required placeholder="Modelo/Marca" class="ent-input p-6 rounded-2xl font-bold">
-                            <input name="serial" placeholder="IMEI / Serial" class="ent-input p-6 rounded-2xl">
-                            <input name="pass" placeholder="PIN / Patrón" class="ent-input p-6 rounded-2xl text-center font-mono">
-                        </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-                            ${['Cargador', 'Funda', 'SIM', 'Mochila', 'Cable'].map(o => `<label class="chip-check"><input type="checkbox" name="objetos" value="${o}" class="hidden"><span>${o}</span></label>`).join('')}
-                        </div>
-                        <textarea name="fault" required placeholder="Falla técnica reportada..." class="ent-input w-full p-8 rounded-[3rem] h-40 text-lg font-semibold"></textarea>
-                        <button type="submit" class="w-full py-8 bg-indigo-600 rounded-[3rem] font-black text-2xl uppercase italic shadow-2xl">Iniciar Orden Lab</button>
-                    </form>
-                </div>`;
-            },
+                rTaller(s) {
+                    const act = db.tickets.filter(t => t.status !== 'Entregado');
+                    s.innerHTML = `
+                        <div class="space-y-6">
+                            <div class="flex justify-between items-center mb-8">
+                                <h3 class="text-xs font-black text-indigo-500 tracking-[0.4em] uppercase">Cola de Trabajo Técnica</h3>
+                                <span class="glass px-6 py-2 rounded-full text-[10px] font-bold">${act.length} Equipos en línea</span>
+                            </div>
+                            ${act.map(t => logic.renderTicketCard(t)).join('')}
+                        </div>` || '<div class="py-60 text-center opacity-5 text-8xl font-black italic uppercase">Vacio</div>';
+                },
 
-            renderTicketCard(t) {
-                return `
-                    <div class="glass p-6 lg:p-8 rounded-[2.5rem] flex flex-col sm:flex-row justify-between items-center gap-6 mb-4 border-l-8 ${t.prio==='Urgente'?'border-rose-600':'border-indigo-600'}">
-                        <div class="flex items-center gap-6 w-full sm:w-auto">
-                            <div class="bg-black/50 p-4 rounded-2xl text-[10px] font-black text-indigo-400 text-center min-w-[80px]">${t.folio}</div>
-                            <div>
-                                <h4 class="text-2xl font-black italic uppercase">${t.client}</h4>
-                                <p class="text-[10px] font-bold text-slate-500 tracking-widest uppercase">${t.device} • ${t.status}</p>
+                rInv(s) {
+                    s.innerHTML = `
+                        <div class="flex justify-between items-center mb-12">
+                            <h3 class="text-xs font-black text-indigo-500 tracking-[0.4em] uppercase">Gestión de Stock</h3>
+                            <button onclick="ui.openDrawer('drawer-inv')" class="bg-indigo-600 px-10 py-4 rounded-2xl font-black uppercase text-xs shadow-2xl hover:bg-indigo-500 transition-all">+ Nueva Refacción</button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            ${db.inventory.map((i, idx) => `
+                                <div class="glass p-8 rounded-[2.5rem] relative border-b-4 ${i.stock <= 2 ? 'border-rose-600 animate-pulse' : 'border-indigo-600'}">
+                                    <span class="text-[8px] font-black text-indigo-400 uppercase tracking-widest">${i.cat}</span>
+                                    <h4 class="text-xl font-black italic mb-6 mt-1">${i.name}</h4>
+                                    <div class="flex justify-between items-end">
+                                        <p class="text-3xl font-black text-emerald-400 font-mono italic">${db.config.currency}${i.price}</p>
+                                        <div class="bg-black/40 px-4 py-2 rounded-xl border border-white/5 flex items-center gap-4">
+                                            <button onclick="logic.updateStock(${idx}, -1)" class="text-xl font-bold opacity-50 hover:opacity-100 hover:text-rose-500">-</button>
+                                            <span class="font-black text-lg min-w-[30px] text-center">${i.stock}</span>
+                                            <button onclick="logic.updateStock(${idx}, 1)" class="text-xl font-bold opacity-50 hover:opacity-100 hover:text-indigo-400">+</button>
+                                        </div>
+                                    </div>
+                                    <button onclick="if(confirm('¿Eliminar?')){db.inventory.splice(${idx},1);sync();ui.view('inv')}" class="absolute top-8 right-8 text-rose-500/20 hover:text-rose-500 transition-colors">✕</button>
+                                </div>
+                            `).join('')}
+                        </div>`;
+                },
+
+                rHistory(s) {
+                    const history = db.tickets.filter(t => t.status === 'Entregado');
+                    s.innerHTML = `
+                        <div class="space-y-6">
+                            <h3 class="text-xs font-black text-emerald-500 tracking-[0.4em] uppercase mb-8 italic">Archivo de Servicios Finalizados</h3>
+                            ${history.map(t => logic.renderTicketCard(t)).join('')}
+                        </div>`;
+                },
+
+                rConfig(s) {
+                    s.innerHTML = `
+                    <div class="max-w-2xl mx-auto glass p-12 rounded-[4rem] space-y-8">
+                        <h3 class="text-3xl font-black italic uppercase text-center mb-6">Ajustes del Taller</h3>
+                        <div class="grid grid-cols-1 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-500 ml-4 uppercase">Nombre Comercial</label>
+                                <input id="c-n" value="${db.config.name}" class="ent-input w-full p-5 rounded-2xl font-black uppercase text-indigo-400">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-500 ml-4 uppercase">Dirección Física</label>
+                                <input id="c-a" value="${db.config.address}" class="ent-input w-full p-5 rounded-2xl font-semibold">
+                            </div>
+                            <div class="grid grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-slate-500 ml-4 uppercase">WhatsApp / Tel</label>
+                                    <input id="c-t" value="${db.config.tel}" class="ent-input w-full p-5 rounded-2xl">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-slate-500 ml-4 uppercase">Días Garantía</label>
+                                    <input id="c-g" type="number" value="${db.config.warranty}" class="ent-input w-full p-5 rounded-2xl font-black">
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-500 ml-4 uppercase">Símbolo Moneda</label>
+                                <input id="c-c" value="${db.config.currency}" class="ent-input w-full p-5 rounded-2xl font-black">
                             </div>
                         </div>
-                        <button onclick="logic.manage(${t.id})" class="w-full sm:w-auto bg-white text-black px-12 py-4 rounded-2xl font-black text-[10px] uppercase shadow-lg hover:bg-indigo-600 hover:text-white transition-all">Abrir Laboratorio</button>
+                        <button onclick="db.config={name:document.getElementById('c-n').value, address:document.getElementById('c-a').value, tel:document.getElementById('c-t').value, warranty:document.getElementById('c-g').value, currency:document.getElementById('c-c').value}; sync(); location.reload();" class="w-full py-6 bg-indigo-600 rounded-[2.5rem] font-black uppercase shadow-2xl">Aplicar y Reiniciar</button>
+                        
+                        <button onclick="if(confirm('¿BORRAR TODO?')){localStorage.clear(); location.reload();}" class="w-full py-4 text-rose-600 text-[10px] font-black uppercase opacity-30 hover:opacity-100">Borrar Base de Datos Local</button>
                     </div>`;
-            },
+                },
 
-            rTaller(s) {
-                const act = db.tickets.filter(t => t.status !== 'Entregado');
-                s.innerHTML = act.map(t => this.renderTicketCard(t)).join('') || '<div class="py-40 text-center opacity-10 text-6xl font-black italic">VACÍO</div>';
-            },
+                openDrawer(id) { document.getElementById(id).classList.add('open'); },
+                closeDrawer(id) { document.getElementById(id).classList.remove('open'); },
+                openModal(html) { document.getElementById('modal-body').innerHTML = html; document.getElementById('modal-container').classList.remove('hidden'); },
+                closeModal() { document.getElementById('modal-container').classList.add('hidden'); }
+            };
 
-            rInv(s) {
-                s.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    ${db.inventory.map(i => `<div class="glass p-8 rounded-[2.5rem] border-b-4 border-indigo-600"><h4 class="font-black italic">${i.name}</h4><p class="text-3xl font-black text-emerald-400">${db.config.currency}${i.price}</p></div>`).join('')}
-                </div>`;
-            },
+            // Utilidades Stock
+            logic.updateStock = (idx, amount) => {
+                db.inventory[idx].stock = Math.max(0, db.inventory[idx].stock + amount);
+                sync();
+                ui.view('inv');
+            };
 
-            rHistory(s) {
-                const h = db.tickets.filter(t => t.status === 'Entregado');
-                s.innerHTML = h.map(t => this.renderTicketCard(t)).join('');
-            },
-
-            openModal(html) { document.getElementById('modal-body').innerHTML = html; document.getElementById('modal-container').classList.remove('hidden'); },
-            closeModal() { document.getElementById('modal-container').classList.add('hidden'); }
-        };
-
-        window.onload = () => { ui.view('dash'); setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('es-MX',{hour12:false}); }, 1000); };
-    </script>
-</body>
-</html>
+            window.onload = () => { 
+                ui.view('dash'); 
+                setInterval(() => { 
+                    document.getElementById('clock').innerText = new Date().toLocaleTimeString('es-MX',{hour12:false}); 
+                }, 1000); 
+            };
+        </script>
+    </body>
+    </html>
